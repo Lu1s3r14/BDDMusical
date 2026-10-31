@@ -9,5 +9,5 @@ custom_target('compilar_BDD',
     '@INPUT@',
     '-c', 'Release',
     '-r', 'linux-x64',
-    '-o', @OUTDIR@'
+    '-o', meson.current_build_dir()
 ])

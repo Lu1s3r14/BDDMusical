@@ -4,7 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PublicAot>true</PublishAot>
-    <AssemblyName>Prueba</AseemblyName>
+    <PublishAot>true</PublishAot>
+    <AssemblyName>Prueba</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="GirCore.Gtk-4.0" Version="0.5.0" />
+  </ItemGroup>
 </Project>
