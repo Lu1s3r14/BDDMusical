@@ -23,9 +23,17 @@ public class Prueba {
 	    Console.WriteLine("Uso: ./build/Prueba ruta/de/prueba");
 	    return;
 	}
-	var minero = new Minero();
+	string bdd = "rolas.db";
+	albumI album = new Album(bdd);
+	var minero = new Minero(album);
+	Console.WriteLine($"Búsqueda en el directorio {ruta}\n");
 	minero.buscarDirectorio(ruta, (mensaje) => {
 	    Console.WriteLine(mensaje);
 	});
+	Console.WriteLine("Total de albums en la bdd: ");
+	var todo = album.mostrarTodo();
+	foreach (var alb in todo) {
+	    Console.WriteLine($"ID: {alb.idAlbum} , {alb.nombreAlbum} , {alb.fechaAlbum} | Ruta: {alb.rutaAlbum}"); 
+	}	
     }
 }
