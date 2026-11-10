@@ -26,20 +26,34 @@ public class Prueba {
 	string bdd = "rolas.db";
 	albumI album = new Album(bdd);
 	performerI performer = new Performer(bdd);
-	var minero = new Minero(album, performer);
+	rolaI rola = new Rola(bdd);
+	var minero = new Minero(album, performer, rola);
 	Console.WriteLine($"Búsqueda en el directorio {ruta}\n");
 	minero.buscarDirectorio(ruta, (mensaje) => {
 	    Console.WriteLine(mensaje);
 	});
-	Console.WriteLine("Total de albums en la bdd: ");
-	var todo = album.mostrarTodo();
-	foreach (var alb in todo) {
-	    Console.WriteLine($"ID: {alb.idAlbum} , {alb.nombreAlbum} , {alb.fechaAlbum} | Ruta: {alb.rutaAlbum}"); 
+	Console.WriteLine("Todos los álbums:");
+	var todosA = album.mostrarTodo();
+	foreach (var al in todosA) {
+	    Console.WriteLine($"id del álb: {al.idAlbum} | nombre: {al.nombreAlbum} | fecha: {al.fechaAlbum}");
 	}
-	Console.WriteLine("Todos los performers en la bdd: ");
-	var todos = performer.mostrarTodoP();
-	foreach (var perf in todos) {
-	    Console.WriteLine($"ID: {perf.idPerf} , tipo: {perf.idTyp} , Nombre: {perf.nombrePerf}");
+	Console.WriteLine("----------------------------------");
+	Console.WriteLine();
+	Console.WriteLine("Todos los performers: ");
+	var todosP = performer.mostrarTodoP();
+	foreach (var per in todosP) {
+	    Console.WriteLine($"id del perf: {per.idPerf} | tipo: {per.idTyp} | nombre: {per.nombrePerf}");
+	}
+	Console.WriteLine("-----------------------------------");
+	Console.WriteLine();
+	Console.WriteLine("Todas las rolas: ");
+	var todosR = rola.mostrarTodoR();
+	foreach (var rol in todosR) {
+	    Console.WriteLine("--------------------------------");
+	    Console.WriteLine($"id de la rola: {rol.idRola} | titulo: {rol.tituloRola} | numPista: {rol.pistaRola} | genero: {rol.generoRola}");
+	    Console.WriteLine($"id del álbum al que pertenecen: {rol.idRalbum}. con id del performer: {rol.idRperf}");
+	    Console.WriteLine($"archivo fisico leido: {rol.rutaRola}");
+	    Console.WriteLine("--------------------------------");
 	}
     }
 }

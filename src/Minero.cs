@@ -13,11 +13,14 @@ public class Minero {
     private readonly albumI album;
     //El performer para probar
     private readonly performerI performer;
+    //La rola para probar
+    private readonly rolaI rola;
 
     //Inicia al minero con el album y performer
-    public Minero(albumI albm, performerI perf) {
+    public Minero(albumI albm, performerI perf, rolaI song) {
 	this.album = albm;
 	this.performer = perf;
+	this.rola = song;
     }
 
     // Busca en los directorios solo los archivos .mp3
@@ -39,6 +42,8 @@ public class Minero {
 		    // string cancion = Path.GetFileName(rutas);
 		    string carpetaAlb = new DirectoryInfo(rutaAlbm).Name;
 		    string titulo = audio.Tag.Title ?? Path.GetFileNameWithoutExtension(rutas);
+		    int pistaR = (int)audio.Tag.Track;
+		    string genero = audio.Tag.FirstGenre;
 		    string artista = audio.Tag.FirstPerformer ?? "Artista Desconocido";
 		    string albumNom = audio.Tag.Album ?? new DirectoryInfo(Path.GetDirectoryName(rutas) ?? "Álbum desconocido").Name;
 		    int fecha = (int)audio.Tag.Year;
@@ -53,9 +58,17 @@ public class Minero {
 			nombrePerf = artista
 		    };
 		    int idPerf = performer.insertaBuscaP(nuevoPerf);
-		    mensaje($"Archivo leido: {Path.GetFileName(rutas)}");
-		    mensaje($"Album: {nuevoAlbm.nombreAlbum} con id: {idAlbm}");
-		    mensaje($"Performer de la rola: {nuevoPerf.nombrePerf} con id: {idPerf}");
+		    var nuevaRola = new rola {
+			idRperf = idPerf,
+			idRalbum = idAlbm,
+			rutaRola = rutas,
+			tituloRola = titulo,
+			pistaRola = pistaR,
+			fechaRola = fecha,
+			generoRola = genero
+		    };
+		    int idRola = rola.insertaBuscaR(nuevaRola);
+		    mensaje($"Cancion con id: {idRola} | id del álbum: {idAlbm} | id del performer: {idPerf}");
 		} catch (TagLib.UnsupportedFormatException) {
 		    mensaje($"El archivo no es válido.");
 		}
