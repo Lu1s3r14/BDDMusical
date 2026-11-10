@@ -20,3 +20,11 @@ public interface albumI {
     //Obtiene los albums que ya están en la bdd
     List<album> mostrarTodo();
 }
+
+//Lo que podemos hacer con la rola en la bdd
+public interface rolaI {
+    //Inserta la rola en la bdd
+    int insertaBuscaR(rola cancion);
+    //Obtiene todas las rolas que ya estén en la bdd
+    List<rola> mostrarTodoR();
+}
