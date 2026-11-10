@@ -25,7 +25,8 @@ public class Prueba {
 	}
 	string bdd = "rolas.db";
 	albumI album = new Album(bdd);
-	var minero = new Minero(album);
+	performerI performer = new Performer(bdd);
+	var minero = new Minero(album, performer);
 	Console.WriteLine($"Búsqueda en el directorio {ruta}\n");
 	minero.buscarDirectorio(ruta, (mensaje) => {
 	    Console.WriteLine(mensaje);
@@ -34,6 +35,11 @@ public class Prueba {
 	var todo = album.mostrarTodo();
 	foreach (var alb in todo) {
 	    Console.WriteLine($"ID: {alb.idAlbum} , {alb.nombreAlbum} , {alb.fechaAlbum} | Ruta: {alb.rutaAlbum}"); 
-	}	
+	}
+	Console.WriteLine("Todos los performers en la bdd: ");
+	var todos = performer.mostrarTodoP();
+	foreach (var perf in todos) {
+	    Console.WriteLine($"ID: {perf.idPerf} , tipo: {perf.idTyp} , Nombre: {perf.nombrePerf}");
+	}
     }
 }

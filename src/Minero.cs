@@ -11,10 +11,13 @@ public class Minero {
 
     //El album para probar
     private readonly albumI album;
+    //El performer para probar
+    private readonly performerI performer;
 
-    //Inicia al minero con el album
-    public Minero(albumI albm) {
+    //Inicia al minero con el album y performer
+    public Minero(albumI albm, performerI perf) {
 	this.album = albm;
+	this.performer = perf;
     }
 
     // Busca en los directorios solo los archivos .mp3
@@ -45,9 +48,14 @@ public class Minero {
 			nombreAlbum = albumNom,
 			fechaAlbum = fecha
 		    };
-		    int id = album.insertaBusca(nuevoAlbm);
+		    int idAlbm = album.insertaBusca(nuevoAlbm);
+		    var nuevoPerf = new performer {
+			nombrePerf = artista
+		    };
+		    int idPerf = performer.insertaBuscaP(nuevoPerf);
 		    mensaje($"Archivo leido: {Path.GetFileName(rutas)}");
-		    mensaje($"Album: {nuevoAlbm.nombreAlbum} con id: {id}");
+		    mensaje($"Album: {nuevoAlbm.nombreAlbum} con id: {idAlbm}");
+		    mensaje($"Performer de la rola: {nuevoPerf.nombrePerf} con id: {idPerf}");
 		} catch (TagLib.UnsupportedFormatException) {
 		    mensaje($"El archivo no es válido.");
 		}
