@@ -9,10 +9,10 @@ public class BDDMusicalV {
 	appl.OnActivate += (sender, e) => {
 	    var window = ApplicationWindow.New((Application) sender);
 	    window.Title = "BDDMusical";
-	    window.SetDefaultSize(500, 500);
-	    var etq = Label.New("Hola mundo.");
-	    window.Child = etq;
-	    window.Show();
+	    window.SetDefaultSize(600, 500);
+		var botonMinero = new VistaMinero(window);
+		window.SetChild(botonMinero.VentanaMin);
+		window.Present();
 	};
 	appl.Run(0, null);
     }
