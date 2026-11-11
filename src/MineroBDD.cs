@@ -1,7 +1,7 @@
 using System;
 //using Gtk;
 
-public class Prueba {
+public class MineroBDD {
     public static void Main(String[] args) {
 	//      var appl = Application.New("BddMusical.prueba", Gio.ApplicationFlags.FlagsNone);
 	//appl.OnActivate += (sender, e) => {
