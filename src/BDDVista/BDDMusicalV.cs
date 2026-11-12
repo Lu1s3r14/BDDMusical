@@ -20,6 +20,6 @@ public class BDDMusicalV {
 	    window.SetChild(tamanio);
 	    window.Present();
 	};
-	appl.Run(0, null);
+	appl.Run(args);
     }
 }
