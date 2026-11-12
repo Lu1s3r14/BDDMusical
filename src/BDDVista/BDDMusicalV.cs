@@ -14,6 +14,9 @@ public class BDDMusicalV {
 	    var botonMinero = new VistaMinero(window);
 	    var contenido = new VistaTabla();
 		contenido.LlenarTabla("rolas.db");
+		botonMinero.terminar = () => {
+			contenido.LlenarTabla("rolas.db");
+		};
 	    //botonMinero.VentanaMin.WidthRequest = 300;
 	    tamanio.Append(botonMinero.VentanaMin);
 	    tamanio.Append(Separator.New(Orientation.Horizontal));

@@ -14,6 +14,11 @@ public class VistaMinero {
 	get;
 	set;
     }
+    //Dice cuando el minero termina
+    public System.Action terminar {
+		get;
+		set;
+	}
     //Crea la vista del minero en la bdd
     public VistaMinero(Window ventana) {
 	VentanaMin = Box.New(Orientation.Vertical, 15);
@@ -57,6 +62,7 @@ public class VistaMinero {
 		    });
 		});
 	    });
+		terminar?.Invoke();
 	    estado.SetText("Completado!");
 	    minar.Sensitive = true;
 	    buscar.Sensitive = true;
