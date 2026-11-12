@@ -9,10 +9,16 @@ public class BDDMusicalV {
 	appl.OnActivate += (sender, e) => {
 	    var window = ApplicationWindow.New((Application) sender);
 	    window.Title = "BDDMusical";
-	    window.SetDefaultSize(600, 500);
-		var botonMinero = new VistaMinero(window);
-		window.SetChild(botonMinero.VentanaMin);
-		window.Present();
+	    window.SetDefaultSize(1000, 650);
+	    var tamanio = Box.New(Orientation.Horizontal, 0);
+	    var botonMinero = new VistaMinero(window);
+	    var contenido = new VistaTabla();
+	    botonMinero.VentanaMin.WidthRequest = 300;
+	    tamanio.Append(botonMinero.VentanaMin);
+	    tamanio.Append(Separator.New(Orientation.Vertical));
+	    tamanio.Append(contenido.barraVista);
+	    window.SetChild(tamanio);
+	    window.Present();
 	};
 	appl.Run(0, null);
     }
