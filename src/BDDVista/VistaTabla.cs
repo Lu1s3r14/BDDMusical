@@ -2,6 +2,8 @@ using System;
 using Gtk;
 using Gio;
 using GObject;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 //Clase que dibuja las tablas de la bdd
@@ -62,24 +64,54 @@ public class VistaTabla {
 	return columna;
     }
     //Llena la tabla con la bdd en sql
-    public void LlenarTabla(string ruta) {
-		datos.RemoveAll();
-		try {
-			string conexion = $"Data Source={ruta}";
-			using var conexionV = new SqliteConnection(conexion);
-			conexionV.Open();
-			string llenar = @"SELECT r.title, p.name, a.name, r.genre FROM rolas r JOIN performers p ON r.id_performer = p.id_performer JOIN albums a ON r.id_album = a.id_album";
-			var comandoLlena = new SqliteCommand(llenar, conexionV);
-			var leer = comandoLlena.ExecuteReader();
-			while(leer.Read()) {
-				string titulo = leer.IsDBNull(0) ? "Desconocido" : leer.GetString(0);
-				string performer = leer.IsDBNull(1) ? "Desconocido" : leer.GetString(1);
-				string album = leer.IsDBNull(2) ? "Desconocido" : leer.GetString(2);
-				string genero = leer.IsDBNull(3) ? "Desconocido" : leer.GetString(3);
-				datos.Append(FilaTabla.Create(titulo, performer, album, genero));
-			}
+    public async void LlenarTabla(string ruta) {
+		var nuevoContenido = await System.Threading.Tasks.Task.Run(() => {
+          List<Temporal> lista = new List<Temporal>();
+          try {
+              string conexion = $"Data Source={ruta}";
+              using var conexionV = new SqliteConnection(conexion);
+              conexionV.Open();
+              string llenar = @"SELECT r.title, p.name, a.name, r.genre FROM rolas r JOIN performers p ON r.id_performer = p.id_performer JOIN albums a ON r.id_album = a.id_album";
+              var comandoLlena = new SqliteCommand(llenar, conexionV);
+              var leer = comandoLlena.ExecuteReader();
+              while(leer.Read()) {
+                  lista.Add(new Temporal {
+                      Titulo = leer.IsDBNull(0) ? "Desconocido" : leer.GetString(0),
+                      Artista = leer.IsDBNull(1) ? "Desconocido" : leer.GetString(1),
+                      Album = leer.IsDBNull(2) ? "Desconocido" : leer.GetString(2),
+                      Genero = leer.IsDBNull(3) ? "Desconocido" : leer.GetString(3)
+                    });
+            }
 		} catch (Exception e) {
-			Console.WriteLine("Error al leer");
-		}
-	}
+            Console.WriteLine("Error al leer");
+        }
+        return lista;
+      });
+      GLib.Functions.IdleAdd(0, () => {
+        datos.RemoveAll();
+        foreach(var song in nuevoContenido) {
+          datos.Append(FilaTabla.Create(song.Titulo, song.Artista, song.Album, song.Genero));
+        }
+        return false;
+      });
+    }
+	//Clase que se usa para obtener datos de la bdd
+	private class Temporal {
+      public string Titulo {
+        get;
+        set;
+      }
+      public string Artista {
+        get;
+        set;
+      }
+      public string Album {
+        get;
+        set;
+      }
+      public string Genero {
+        get;
+        set;
+      }
+    }
 }
