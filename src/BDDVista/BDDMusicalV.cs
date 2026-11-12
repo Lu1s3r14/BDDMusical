@@ -10,12 +10,12 @@ public class BDDMusicalV {
 	    var window = ApplicationWindow.New((Application) sender);
 	    window.Title = "BDDMusical";
 	    window.SetDefaultSize(1000, 650);
-	    var tamanio = Box.New(Orientation.Horizontal, 0);
+	    var tamanio = Box.New(Orientation.Vertical, 0);
 	    var botonMinero = new VistaMinero(window);
 	    var contenido = new VistaTabla();
-	    botonMinero.VentanaMin.WidthRequest = 300;
+	    //botonMinero.VentanaMin.WidthRequest = 300;
 	    tamanio.Append(botonMinero.VentanaMin);
-	    tamanio.Append(Separator.New(Orientation.Vertical));
+	    tamanio.Append(Separator.New(Orientation.Horizontal));
 	    tamanio.Append(contenido.barraVista);
 	    window.SetChild(tamanio);
 	    window.Present();
