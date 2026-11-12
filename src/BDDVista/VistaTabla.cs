@@ -2,6 +2,7 @@ using System;
 using Gtk;
 using Gio;
 using GObject;
+using Microsoft.Data.Sqlite;
 
 //Clase que dibuja las tablas de la bdd
 //cuando ya se llenan
@@ -60,4 +61,25 @@ public class VistaTabla {
 	columna.Expand = true;
 	return columna;
     }
+    //Llena la tabla con la bdd en sql
+    public void LlenarTabla(string ruta) {
+		datos.RemoveAll();
+		try {
+			string conexion = $"Data Source={ruta}";
+			using var conexionV = new SqliteConnection(conexion);
+			conexionV.Open();
+			string llenar = @"SELECT r.title, p.name, a.name, r.genre FROM rolas r JOIN performers p ON r.id_performer = p.id_performer JOIN albums a ON r.id_album = a.id_album";
+			var comandoLlena = new SqliteCommand(llenar, conexionV);
+			var leer = comandoLlena.ExecuteReader();
+			while(leer.Read()) {
+				string titulo = leer.IsDBNull(0) ? "Desconocido" : leer.GetString(0);
+				string performer = leer.IsDBNull(1) ? "Desconocido" : leer.GetString(1);
+				string album = leer.IsDBNull(2) ? "Desconocido" : leer.GetString(2);
+				string genero = leer.IsDBNull(3) ? "Desconocido" : leer.GetString(3);
+				datos.Append(FilaTabla.Create(titulo, performer, album, genero));
+			}
+		} catch (Exception e) {
+			Console.WriteLine("Error al leer");
+		}
+	}
 }
