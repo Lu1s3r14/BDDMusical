@@ -203,21 +203,32 @@ public class VistaTabla {
             caja.MarginTop = caja.MarginBottom = caja.MarginStart = caja.MarginEnd = 15;          
             var textoT = Entry.New();
             textoT.Buffer.Text = seleccionado.Titulo;
+	    var textoA = Entry.New();
+	    textoA.Buffer.Text = seleccionado.Performer;
+	    var textoAl = Entry.New();
+	    textoAl.Buffer.Text = seleccionado.Album;
+	    var textoG = Entry.New();
+	    textoG.Buffer.Text = seleccionado.Genero;
             var textoF = Entry.New();
             textoF.Buffer.Text = seleccionado.Fecha;         
             Button Guardar = Button.NewWithLabel("Guardar.");
             Guardar.OnClicked += async (s2, e2) => {
                 Guardar.Sensitive = false;
-                await ActualizarC(seleccionado.IdRola, textoT.Buffer.Text, textoF.Buffer.Text);
+                await ActualizarC(seleccionado.IdRola, textoT.Buffer.Text, textoA.Buffer.Text, textoAl.Buffer.Text, textoG.Buffer.Text, textoF.Buffer.Text);
                 ventanaEdit.Close();
                 LlenarTabla(rutaBDD);
             };            
             caja.Append(Label.New("Título de la pista:"));
             caja.Append(textoT);
+	    caja.Append(Label.New("Artísta:"));
+	    caja.Append(textoA);
+	    caja.Append(Label.New("Álbum:"));
+	    caja.Append(textoAl);
+	    caja.Append(Label.New("Género:"));
+	    caja.Append(textoG);
             caja.Append(Label.New("Año:"));
             caja.Append(textoF);
-            caja.Append(Guardar);
-            
+            caja.Append(Guardar);         
             ventanaEdit.SetChild(caja);
             ventanaEdit.Show();
         };
@@ -279,15 +290,47 @@ public class VistaTabla {
 	});
     }
     //Actualiza la bdd con los nuevos datos para las canciones
-    public async System.Threading.Tasks.Task ActualizarC(int idRola, string tituloN, string fechaN) {
+    public async System.Threading.Tasks.Task ActualizarC(int idRola, string tituloN, string performerN, string albumN, string generoN, string fechaN) {
 	string conexion = $"Data Source={rutaBDD}";
 	await System.Threading.Tasks.Task.Run(() => {
 	    using var conexionA = new SqliteConnection(conexion);
 	    conexionA.Open();
-	    string actu = "UPDATE rolas SET title = @t, year = @y WHERE id_rola = @id";
+	    long idPerf = 0;
+	    string perf = "SELECT id_performer FROM performers WHERE name = @name";
+	    using var comandoPerf = new SqliteCommand(perf, conexionA);
+	    comandoPerf.Parameters.AddWithValue("@name", performerN);
+	    var per = comandoPerf.ExecuteScalar();
+	    if (per != null) {
+		idPerf = Convert.ToInt64(per);
+	    } else {
+		string metePerf = "INSERT INTO performers (name) VALUES (@name); SELECT last_insert_rowid();";
+		using var comandoInserta = new SqliteCommand(metePerf, conexionA);
+		comandoInserta.Parameters.AddWithValue("@name", performerN);
+		var perfN = comandoInserta.ExecuteScalar();
+		idPerf = Convert.ToInt64(perfN);
+	    }
+	    long idAlbm = 0;
+	    string albu = "SELECT id_album FROM albums WHERE name = @name";
+	    using var comandoAlb = new SqliteCommand(albu, conexionA);
+	    comandoAlb.Parameters.AddWithValue("@name", albumN);
+	    var alb = comandoAlb.ExecuteScalar();
+	    if (alb != null) {
+		idAlbm = Convert.ToInt64(alb);
+	    } else {
+		string meteAlbu = "INSERT INTO albums (path, name, year) VALUES ('', @name, @year); SELECT last_insert_rowid();";
+		using var comandoMete = new SqliteCommand(meteAlbu, conexionA);
+		comandoMete.Parameters.AddWithValue("@name", albumN);
+		comandoMete.Parameters.AddWithValue("@year", int.TryParse(fechaN, out int y) ? y : 0);
+		var albN = comandoMete.ExecuteScalar();
+		idAlbm = Convert.ToInt64(albN);
+	    }	    
+	    string actu = "UPDATE rolas SET title = @t, year = @y, genre = @g, id_performer = @ip, id_album = @ia WHERE id_rola = @id";
 	    using var comandoActu = new SqliteCommand(actu, conexionA);
 	    comandoActu.Parameters.AddWithValue("@t", tituloN);
 	    comandoActu.Parameters.AddWithValue("@y", int.TryParse(fechaN, out int a) ? a : 0);
+	    comandoActu.Parameters.AddWithValue("@g", generoN);
+	    comandoActu.Parameters.AddWithValue("@ip", idPerf);
+	    comandoActu.Parameters.AddWithValue("@ia", idAlbm);
 	    comandoActu.Parameters.AddWithValue("@id", idRola);
 	    comandoActu.ExecuteNonQuery();
 	    });
