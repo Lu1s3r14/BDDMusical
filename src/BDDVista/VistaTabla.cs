@@ -62,10 +62,12 @@ public class VistaTabla {
         Botones.MarginTop = 10;
         Botones.MarginBottom = 10;
         Botones.MarginEnd = 13;
+        var BBuscar = Button.NewWithLabel("Buscar");
         var BPersona = Button.NewWithLabel("Agregar Persona");
         var BBanda = Button.NewWithLabel("Agregar Banda");
         var BUnir = Button.NewWithLabel("Unir a grupo");
         var BEditar = Button.NewWithLabel("Editar");
+        Botones.Append(BBuscar);
         Botones.Append(BPersona);
         Botones.Append(BBanda);
         Botones.Append(BUnir);
@@ -74,6 +76,37 @@ public class VistaTabla {
           if (seleccionar.SelectedItem == null) return;
           var seleccionado = (FilaTabla)seleccionar.SelectedItem;
           await VerCaratula(seleccionado.IdRola);
+        };
+        BBuscar.OnClicked += (s, e) => {
+          var ventanaBuscar = Window.New();
+          ventanaBuscar.Title = "Buscar en específico";
+          ventanaBuscar.DefaultWidth = 300;
+          var cajaBusca = Box.New(Orientation.Vertical, 10);
+          cajaBusca.MarginTop = cajaBusca.MarginBottom = cajaBusca.MarginStart = cajaBusca.MarginEnd = 15;
+          var opcionesFiltro = StringList.New(new[] {"Artista", "Género", "Álbum", "Título"});
+          var filtro = DropDown.New(opcionesFiltro, null);
+          var textoBusqueda = Entry.New();
+          textoBusqueda.PlaceholderText = "Escribe para buscar...";
+          var BLimpiar = Button.NewWithLabel("Cancelar búsqueda");
+          textoBusqueda.OnChanged += (s2, e2) => {
+            Filtrar(filtro.Selected, textoBusqueda.Buffer.Text);
+          };
+          filtro.OnNotify += (s2, e2) => {
+            if (e2.Pspec.GetName() == "selected") {
+              var combo = (DropDown)s2;
+              Filtrar(combo.Selected, textoBusqueda.Buffer.Text);
+            }
+          };
+          BLimpiar.OnClicked += (s2, e2) => {
+            textoBusqueda.Buffer.Text = "";
+            LlenarTabla(rutaBDD);
+          };
+          cajaBusca.Append(Label.New("Filtrar por:"));
+          cajaBusca.Append(filtro);
+          cajaBusca.Append(textoBusqueda);
+          cajaBusca.Append(BLimpiar);
+          ventanaBuscar.SetChild(cajaBusca);
+          ventanaBuscar.Show();
         };
         BPersona.OnClicked += (s, e) => {
             var ventanaPersona = Window.New();
@@ -350,7 +383,52 @@ public class VistaTabla {
         }
       });
     }
-
+    //Hace busqueda en especifico en la bdd
+    public async void Filtrar(uint iFiltro, string busqueda) {
+      if (string.IsNullOrWhiteSpace(busqueda)) {
+        LlenarTabla(rutaBDD);
+        return;
+      }
+      var nuevoContenido = await System.Threading.Tasks.Task.Run(() => {
+        string conexion = $"Data Source={rutaBDD}";
+        List<Temporal> lista = new List<Temporal>();
+        try {
+          string columnaSql = iFiltro switch {
+            0 => "p.name",
+            1 => "r.genre",
+            2 => "a.name",
+            3 => "r.title",
+            _ => "p.name"
+          };
+          using var conexionV = new SqliteConnection(conexion);
+          conexionV.Open();
+          string filtros = $@"SELECT r.id_rola, r.title, p.name, a.name, r.genre, r.year FROM rolas r JOIN performers p ON r.id_performer = p.id_performer JOIN albums a ON r.id_album = a.id_album WHERE {columnaSql} LIKE @b";
+          using var comandoFiltro = new SqliteCommand(filtros, conexionV);
+          comandoFiltro.Parameters.AddWithValue("@b", $"%{busqueda}%");
+          var leer = comandoFiltro.ExecuteReader();
+          while(leer.Read()) {
+            lista.Add(new Temporal {
+              IdRola = leer.GetInt32(0),
+                      Titulo = leer.IsDBNull(1) ? "Desconocido" : leer.GetString(1),
+                      Artista = leer.IsDBNull(2) ? "Desconocido" : leer.GetString(2),
+                      Album = leer.IsDBNull(3) ? "Desconocido" : leer.GetString(3),
+                      Genero = leer.IsDBNull(4) ? "Desconocido" : leer.GetString(4),
+                      Fecha = leer.IsDBNull(5) ? "Desconocido" : leer.GetInt32(5).ToString()
+            });
+          }
+        } catch (Exception ex) {
+          Console.WriteLine("Error al filtrar: " + ex.Message);
+        }
+        return lista;
+      });
+      GLib.Functions.IdleAdd(0, () => {
+        datos.RemoveAll();
+        foreach(var song in nuevoContenido) {
+          datos.Append(FilaTabla.Create(song.IdRola, song.Titulo, song.Artista, song.Album, song.Genero, song.Fecha));
+        }
+        return false;
+      });
+    }
     //Clase que se usa para obtener datos de la bdd
     private class Temporal {
 	public int IdRola {
