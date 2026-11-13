@@ -21,6 +21,7 @@ public class BDDMusicalV {
 	    tamanio.Append(botonMinero.VentanaMin);
 	    tamanio.Append(Separator.New(Orientation.Horizontal));
 	    tamanio.Append(contenido.barraVista);
+		tamanio.Append(contenido.Editar);
 	    window.SetChild(tamanio);
 	    window.Present();
 	};

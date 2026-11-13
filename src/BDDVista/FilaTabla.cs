@@ -9,15 +9,22 @@ using GObject;
 public partial class FilaTabla {
 
     //Crea una fila para la vista con los atributos
-    public FilaTabla(string titulo, string artista, string album, string genero) : this(Array.Empty<ConstructArgument>()) {
-	Titulo = titulo;
+    public FilaTabla(int id, string titulo, string artista, string album, string genero, string fecha) : this(Array.Empty<ConstructArgument>()) {
+	IdRola = id;
+    Titulo = titulo;
 	Performer = artista;
 	Album = album;
 	Genero = genero;
+    Fecha = fecha;
     }
 
-    public static FilaTabla Create(string titulo, string artista, string album, string genero) {
-        return new FilaTabla(titulo, artista, album, genero);
+    public static FilaTabla Create(int id, string titulo, string artista, string album, string genero, string fecha) {
+        return new FilaTabla(id, titulo, artista, album, genero, fecha);
+    }
+    //El id
+    public int IdRola {
+      get;
+      set;
     }
     
     //El título de la rola
@@ -40,4 +47,9 @@ public partial class FilaTabla {
 	get;
 	set;
     }    
+    //La fecha de la rola
+    public string Fecha {
+      get;
+      set;
+    }
 }

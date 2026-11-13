@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
+    <StartupObject>MineroBDD</StartupObject>
     <AssemblyName>Minero</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
