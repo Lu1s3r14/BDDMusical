@@ -1,6 +1,6 @@
 # Base de datos musical con Interfaz Gráfica.
 
-Para poder ejecutar este programa es necesario contar con:
+Para poder ejecutar/compilar este programa es necesario contar con:
 
 * Meson (_Para poder compilar este programa._)
 * Gtk4 (_Principalmente para la interfaz_.)
@@ -21,11 +21,11 @@ Todo esto desde la carpeta raíz del programa.
 El programa se puede usar de dos formas:
 * El minero de la base de datos:
 ```
-./build/Minero ruta/de/prueba
+$ ./build/Minero ruta/de/prueba
 ```
 * La interfaz gráfica de la base de datos.
 ```
-./build/BDDMusical
+$ ./build/BDDMusical
 ```
 
 Cada una es independiente, pero si se ejecuta el minero desde la terminal crea un .db donde guarda todo lo que encuentra de los .mp3.
