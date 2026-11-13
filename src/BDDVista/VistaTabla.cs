@@ -30,6 +30,11 @@ public class VistaTabla {
 	get;
 	set;
     }
+    //La imagen del álbum
+    public Picture Imagen {
+      get;
+      set;
+    }
     //La ruta para editar de nuevo la bdd
     private string rutaBDD;
 
@@ -47,6 +52,11 @@ public class VistaTabla {
         contenidoTabla.AppendColumn(nuevaColumna("Álbum", r => r.Album));
         contenidoTabla.AppendColumn(nuevaColumna("Género", r => r.Genero));
 	barraVista.SetChild(contenidoTabla);
+    Imagen = Picture.New();
+    Imagen.WidthRequest = 200;
+    Imagen.HeightRequest = 200;
+    Imagen.MarginStart = 15;
+    Imagen.MarginEnd = 15;
 	Botones = Box.New(Orientation.Horizontal, 10);
         Botones.Halign = Align.End;
         Botones.MarginTop = 10;
@@ -60,6 +70,11 @@ public class VistaTabla {
         Botones.Append(BBanda);
         Botones.Append(BUnir);
         Botones.Append(BEditar);
+        seleccionar.OnSelectionChanged += async (s, e) => {
+          if (seleccionar.SelectedItem == null) return;
+          var seleccionado = (FilaTabla)seleccionar.SelectedItem;
+          await VerCaratula(seleccionado.IdRola);
+        };
         BPersona.OnClicked += (s, e) => {
             var ventanaPersona = Window.New();
             ventanaPersona.Title = "Nueva Persona";
@@ -280,16 +295,60 @@ public class VistaTabla {
     }
     //Crea bandas en la bdd
     private async System.Threading.Tasks.Task InsertarBanda(string nombre, string inicio, string fin) {
+      string conexion = $"Data Source={rutaBDD}";
         await System.Threading.Tasks.Task.Run(() => {
-            using var conexion = new SqliteConnection($"Data Source={rutaBDD}");
-            conexion.Open();
-            string query = "INSERT INTO groups (name, start_date, end_date) VALUES (@n, @i, @f)";
-            using var cmd = new SqliteCommand(query, conexion);
-            cmd.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(nombre) ? DBNull.Value : nombre);
-            cmd.Parameters.AddWithValue("@i", string.IsNullOrWhiteSpace(inicio) ? DBNull.Value : inicio);
-            cmd.Parameters.AddWithValue("@f", string.IsNullOrWhiteSpace(fin) ? DBNull.Value : fin);
-            cmd.ExecuteNonQuery();
+            using var conexionB = new SqliteConnection(conexion);
+            conexionB.Open();
+            string meterGrupo = "INSERT INTO groups (name, start_date, end_date) VALUES (@n, @i, @f)";
+            using var comandoMeter = new SqliteCommand(meterGrupo, conexionB);
+            comandoMeter.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(nombre) ? DBNull.Value : nombre);
+            comandoMeter.Parameters.AddWithValue("@i", string.IsNullOrWhiteSpace(inicio) ? DBNull.Value : inicio);
+            comandoMeter.Parameters.AddWithValue("@f", string.IsNullOrWhiteSpace(fin) ? DBNull.Value : fin);
+            comandoMeter.ExecuteNonQuery();
         });
+    }
+    //Extrae la imagen de la caratula para verla
+    private async System.Threading.Tasks.Task VerCaratula(int idRola) {
+      string rutaAudio = "";
+      string conexion = $"Data Source={rutaBDD}";
+      await System.Threading.Tasks.Task.Run(() => {
+        using var conexionV = new SqliteConnection(conexion);
+        conexionV.Open();
+        string busca = "SELECT path FROM rolas WHERE id_rola = @id";
+        using var comandoVer = new SqliteCommand(busca, conexionV);
+        comandoVer.Parameters.AddWithValue("@id", idRola);
+        var img = comandoVer.ExecuteScalar();
+        if (img != DBNull.Value && img != null) {
+          rutaAudio = img.ToString();
+        }
+      });
+      if (string.IsNullOrEmpty(rutaAudio) || !System.IO.File.Exists(rutaAudio)) {
+        GLib.Functions.IdleAdd(0, () => {
+          Imagen.SetFilename("");
+          return false; });
+        return;
+      }
+      await System.Threading.Tasks.Task.Run(() => {
+        try {
+          var arch = TagLib.File.Create(rutaAudio);
+          if (arch.Tag.Pictures.Length > 0) {
+            var bin = arch.Tag.Pictures[0].Data.Data;
+            System.IO.File.WriteAllBytes("/tmp/caratula_bddmusical.jpg", bin);
+            GLib.Functions.IdleAdd(0, () => {
+              Imagen.SetFilename("/tmp/caratula_bddmusical.jpg");
+              return false;
+            });
+          } else {
+            GLib.Functions.IdleAdd(0, () => {
+              Imagen.SetFilename("");
+              return false; });
+          }
+        } catch {
+          GLib.Functions.IdleAdd(0, () => {
+            Imagen.SetFilename("");
+            return false; });
+        }
+      });
     }
 
     //Clase que se usa para obtener datos de la bdd
