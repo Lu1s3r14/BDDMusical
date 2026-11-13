@@ -25,7 +25,7 @@ public class VistaTabla {
 	get;
 	set;
     }
-    //El boton para editar
+    //Los botones
     public Box Botones {
 	get;
 	set;
@@ -52,26 +52,28 @@ public class VistaTabla {
         Botones.MarginTop = 10;
         Botones.MarginBottom = 10;
         Botones.MarginEnd = 13;
-	var BPersona = Button.NewWithLabel("Agregar Persona");
+        var BPersona = Button.NewWithLabel("Agregar Persona");
         var BBanda = Button.NewWithLabel("Agregar Banda");
+        var BUnir = Button.NewWithLabel("Unir a grupo");
         var BEditar = Button.NewWithLabel("Editar");
-	Botones.Append(BPersona);
+        Botones.Append(BPersona);
         Botones.Append(BBanda);
+        Botones.Append(BUnir);
         Botones.Append(BEditar);
-	BPersona.OnClicked += (s, e) => {
-	    var ventanaPersona = Window.New();
+        BPersona.OnClicked += (s, e) => {
+            var ventanaPersona = Window.New();
             ventanaPersona.Title = "Nueva Persona";
             ventanaPersona.DefaultWidth = 300;
             var cajaP = Box.New(Orientation.Vertical, 10);
             cajaP.MarginTop = cajaP.MarginBottom = cajaP.MarginStart = cajaP.MarginEnd = 15;
             var textoArtista = Entry.New();
-	    textoArtista.PlaceholderText = "Nombre Artístico";
+            textoArtista.PlaceholderText = "Nombre Artístico";
             var textoReal = Entry.New();
-	    textoReal.PlaceholderText = "Nombre Real";
+            textoReal.PlaceholderText = "Nombre Real";
             var textoNacimiento = Entry.New();
-	    textoNacimiento.PlaceholderText = "(YYYY-MM-DD)";
+            textoNacimiento.PlaceholderText = "(YYYY-MM-DD)";
             var textoMuerte = Entry.New();
-	    textoMuerte.PlaceholderText = "(YYYY-MM-DD)";
+            textoMuerte.PlaceholderText = "(YYYY-MM-DD)";
             var BGuardarP = Button.NewWithLabel("Guardar");
             BGuardarP.OnClicked += async (s2, e2) => {
                 BGuardarP.Sensitive = false;
@@ -118,9 +120,33 @@ public class VistaTabla {
             ventanaBanda.SetChild(cajaB);
             ventanaBanda.Show();
         };
-	BEditar.OnClicked += (s, e) => {
+        BUnir.OnClicked += (s, e) => {
+          var ventanaUnion = Window.New();
+          ventanaUnion.Title = "Unir a Banda";
+          ventanaUnion.DefaultWidth = 300;
+          var cajaU = Box.New(Orientation.Vertical, 10);
+          cajaU.MarginTop = cajaU.MarginBottom = cajaU.MarginStart = cajaU.MarginEnd = 15;
+          var textoPersona = Entry.New();
+          textoPersona.PlaceholderText = "Nombre de la persona";
+          var textoBanda = Entry.New();
+          textoBanda.PlaceholderText = "Nombre de la banda";
+          var BGuardarU = Button.NewWithLabel("Unir");
+          BGuardarU.OnClicked += async (s2, e2) => {
+            BGuardarU.Sensitive = false;
+            await UniraBanda(textoPersona.Buffer.Text, textoBanda.Buffer.Text);
+            ventanaUnion.Close();
+          };
+          cajaU.Append(Label.New("Artista:"));
+          cajaU.Append(textoPersona);
+          cajaU.Append(Label.New("Banda/Grupo al que pertenece:"));
+          cajaU.Append(textoBanda);
+          cajaU.Append(BGuardarU);
+          ventanaUnion.SetChild(cajaU);
+          ventanaUnion.Show();
+        };
+        BEditar.OnClicked += (s, e) => {
             if (seleccionar.SelectedItem == null)
-		return;
+                return;
             var seleccionado = (FilaTabla)seleccionar.SelectedItem;           
             var ventanaEdit = Window.New();
             ventanaEdit.Title = "Editar canción.";
@@ -234,7 +260,25 @@ public class VistaTabla {
             comandoInsertar.ExecuteNonQuery();
         });
     }
-
+    //Une personas a un grupo/banda
+    private async System.Threading.Tasks.Task UniraBanda(string nombrePersona, string nombreBanda) {
+      string conexion = $"Data Source={rutaBDD}";
+      await System.Threading.Tasks.Task.Run(() => {
+        try {
+          using var conexionG = new SqliteConnection(conexion);
+          conexionG.Open();
+          string unir = @"
+          INSERT INTO in_group (id_person, id_group) VALUES ((SELECT id_person FROM persons WHERE stage_name = @p OR real_name = @p LIMIT 1),(SELECT id_group FROM groups WHERE name = @b LIMIT 1))";
+          using var comandoUnir = new SqliteCommand(unir, conexionG);
+          comandoUnir.Parameters.AddWithValue("@p", string.IsNullOrWhiteSpace(nombrePersona) ? DBNull.Value : nombrePersona);
+          comandoUnir.Parameters.AddWithValue("@b", string.IsNullOrWhiteSpace(nombreBanda) ? DBNull.Value : nombreBanda);
+          comandoUnir.ExecuteNonQuery();
+        } catch (Exception ex) {
+          Console.WriteLine("Error al unir a la banda");
+        }
+      });
+    }
+    //Crea bandas en la bdd
     private async System.Threading.Tasks.Task InsertarBanda(string nombre, string inicio, string fin) {
         await System.Threading.Tasks.Task.Run(() => {
             using var conexion = new SqliteConnection($"Data Source={rutaBDD}");
