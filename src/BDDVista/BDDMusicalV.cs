@@ -5,17 +5,18 @@ using Gtk;
 
 public class BDDMusicalV {
     public static void Main(String[] args) {
-	var appl = Application.New("BDDMusical.prueba", Gio.ApplicationFlags.FlagsNone);
+	var appl = Application.New("BDDMusical.Plus", Gio.ApplicationFlags.FlagsNone);
 	appl.OnActivate += (sender, e) => {
 	    var window = ApplicationWindow.New((Application) sender);
 	    window.Title = "BDDMusical";
 	    window.SetDefaultSize(1200, 700);
+	    string rolasdb = IniciaBDD.Inicia();
 	    var tamanio = Box.New(Orientation.Vertical, 0);
-	    var botonMinero = new VistaMinero(window);
+	    var botonMinero = new VistaMinero(window, rolasdb);
 	    var contenido = new VistaTabla();
-		contenido.LlenarTabla("rolas.db");
+		contenido.LlenarTabla(rolasdb);
 		botonMinero.terminar = () => {
-			contenido.LlenarTabla("rolas.db");
+			contenido.LlenarTabla(rolasdb);
 		};
 	    tamanio.Append(botonMinero.VentanaMin);
 		var cajaPrinc = Box.New(Orientation.Horizontal, 0);

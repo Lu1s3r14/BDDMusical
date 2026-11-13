@@ -20,7 +20,7 @@ public class VistaMinero {
 		set;
 	}
     //Crea la vista del minero en la bdd
-    public VistaMinero(Window ventana) {
+    public VistaMinero(Window ventana, string rutabdd) {
 	VentanaMin = Box.New(Orientation.Vertical, 15);
 	VentanaMin.MarginTop = VentanaMin.MarginBottom = 25;
 	VentanaMin.MarginStart = VentanaMin.MarginEnd = 25;
@@ -43,7 +43,7 @@ public class VistaMinero {
 	};
 	caja.Append(ruta);
 	caja.Append(buscar);
-	var estado = Label.New("Buscando..");
+	var estado = Label.New("....");
 	var minar = Button.NewWithLabel("Buscar musica.");
 	minar.OnClicked += async (s, args) => {
 	    minar.Sensitive = false;
@@ -51,9 +51,9 @@ public class VistaMinero {
 	    string rutaFinal = ruta.Buffer.Text;
 	    estado.SetText($"Buscando en: {rutaFinal}");
 	    await System.Threading.Tasks.Task.Run(() => {
-		albumI album = new Album("rolas.db");
-		performerI performer = new Performer("rolas.db");
-		rolaI rola = new Rola("rolas.db");
+		albumI album = new Album(rutabdd);
+		performerI performer = new Performer(rutabdd);
+		rolaI rola = new Rola(rutabdd);
 		var minero = new Minero(album, performer, rola);
 		minero.buscarDirectorio(rutaFinal, (mensaje) => {
 		    GLib.Functions.IdleAdd(0, () => {
@@ -62,7 +62,7 @@ public class VistaMinero {
 		    });
 		});
 	    });
-		terminar?.Invoke();
+	    terminar?.Invoke();
 	    estado.SetText("Completado!");
 	    minar.Sensitive = true;
 	    buscar.Sensitive = true;
