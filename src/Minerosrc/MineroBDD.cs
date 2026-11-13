@@ -1,21 +1,8 @@
 using System;
-//using Gtk;
 
 public class MineroBDD {
     public static void Main(String[] args) {
-	//      var appl = Application.New("BddMusical.prueba", Gio.ApplicationFlags.FlagsNone);
-	//appl.OnActivate += (sender, e) => {
-	//  var window = ApplicationWindow.New((Application)sender);
-	//  window.Title = "BddMusicalPrueba";
-	//  window.DefaultWidth = 320;
-	//  window.DefaultHeight = 220;
-	//  var etq = Label.New("Hola mundo 2. ");
-	//  window.Child = etq;
-	//  window.Show();
-	//
-	//appl.Run(0, null);
-	//}
-	Console.WriteLine("Prueba minero.");
+	Console.WriteLine("Minero de la bdd.");
 	string ruta;
 	if (args.Length>0) {
 	    ruta = args[0];
@@ -23,7 +10,7 @@ public class MineroBDD {
 	    Console.WriteLine("Uso: ./build/Prueba ruta/de/prueba");
 	    return;
 	}
-	string bdd = "rolas.db";
+	string bdd = IniciaBDD.Inicia();
 	albumI album = new Album(bdd);
 	performerI performer = new Performer(bdd);
 	rolaI rola = new Rola(bdd);

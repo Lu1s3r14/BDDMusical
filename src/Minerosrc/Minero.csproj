@@ -15,4 +15,7 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="TagLibSharp" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\BDDVista\IniciaBDD.cs" />
+  </ItemGroup>
 </Project>
