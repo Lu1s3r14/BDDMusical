@@ -35,6 +35,29 @@ public class VistaTabla {
       get;
       set;
     }
+    //El reproductor de audio
+    public Box ContieneRepro {
+	get;
+	set;
+    }
+    //El que reproduce el audio
+    private Gtk.MediaStream reproductor;
+
+    //La barra de progreso
+    private Scale bprogreso;
+
+    //El contador de tiempo
+    private Label ctiempo;
+
+    //El botón de play/pause
+    private Button bplay;
+
+    //Dice si el usuario mueve el progreso
+    private bool cambiaProgreso;
+
+    //Marca el tiempo del progreso
+    private uint idTemp = 0;
+    
     //La ruta para editar de nuevo la bdd
     private string rutaBDD;
 
@@ -52,11 +75,11 @@ public class VistaTabla {
         contenidoTabla.AppendColumn(nuevaColumna("Álbum", r => r.Album));
         contenidoTabla.AppendColumn(nuevaColumna("Género", r => r.Genero));
 	barraVista.SetChild(contenidoTabla);
-    Imagen = Picture.New();
-    Imagen.WidthRequest = 200;
-    Imagen.HeightRequest = 200;
-    Imagen.MarginStart = 15;
-    Imagen.MarginEnd = 15;
+	Imagen = Picture.New();
+	Imagen.WidthRequest = 200;
+	Imagen.HeightRequest = 200;
+	Imagen.MarginStart = 15;
+	Imagen.MarginEnd = 15;
 	Botones = Box.New(Orientation.Horizontal, 10);
         Botones.Halign = Align.End;
         Botones.MarginTop = 10;
@@ -77,6 +100,38 @@ public class VistaTabla {
           var seleccionado = (FilaTabla)seleccionar.SelectedItem;
           await VerCaratula(seleccionado.IdRola);
         };
+	ContieneRepro = Box.New(Orientation.Horizontal, 10);
+	ContieneRepro.MarginTop = 5;
+	ContieneRepro.MarginBottom = 15;
+	ContieneRepro.MarginStart = 15;
+	ContieneRepro.MarginEnd = 15;
+	bplay = Button.NewWithLabel("▶");
+	bplay.Valign = Align.Center;
+	bprogreso = Scale.NewWithRange(Orientation.Horizontal, 0, 100, 1);
+	bprogreso.Valign = Align.Center;
+	bprogreso.DrawValue = false;
+	ctiempo = Label.New("00:00 | 00:00");
+	ctiempo.Valign = Align.Center;
+	ContieneRepro.Append(bplay);
+	ContieneRepro.Append(bprogreso);
+	ContieneRepro.Append(ctiempo);
+	bplay.OnClicked += (s, e) => {
+	    if (reproductor == null)
+		return;
+	    if (reproductor.GetPlaying()) {
+		reproductor.SetPlaying(false);
+		bplay.SetLabel("▶");
+	    } else {
+		reproductor.SetPlaying(true);
+		bplay.SetLabel("❚❚");
+	    }
+	};
+	contenidoTabla.OnActivate += async (s, e) => {
+	    if (seleccionar.SelectedItem == null)
+		return;
+	    var seleccionado = (FilaTabla)seleccionar.SelectedItem;
+	    await Reproduce(seleccionado.IdRola);
+	    };
         BBuscar.OnClicked += (s, e) => {
           var ventanaBuscar = Window.New();
           ventanaBuscar.Title = "Buscar en específico";
@@ -472,6 +527,56 @@ public class VistaTabla {
         return false;
       });
     }
+
+    //Carga el .mp3 en el reproductor de gtk para reproducirlo.
+    private async System.Threading.Tasks.Task Reproduce(int idRola) {
+	string mp3 = "";
+	string conexion = $"Data Source={rutaBDD}";
+	await System.Threading.Tasks.Task.Run(() => {
+	    using var conexionR = new SqliteConnection(conexion);
+	    conexionR.Open();
+	    string repro = "SELECT path FROM rolas WHERE id_rola = @id";
+	    using var comandoRepro = new SqliteCommand(repro, conexionR);
+	    comandoRepro.Parameters.AddWithValue("@id", idRola);
+	    var arch = comandoRepro.ExecuteScalar();
+	    if (arch != DBNull.Value && arch != null)
+		mp3 = arch.ToString();
+	    });
+	if (string.IsNullOrEmpty(mp3) || !System.IO.File.Exists(mp3))
+	    return;
+	if (reproductor != null)
+	    reproductor.SetPlaying(false);
+	var archivo = Gio.FileHelper.NewForPath(mp3);
+	reproductor = Gtk.MediaFile.NewForFile(archivo);
+	reproductor.SetPlaying(true);
+	bplay.SetLabel("❚❚");
+	if (idTemp == 0) {
+	    idTemp = GLib.Functions.TimeoutAdd(0, 500, () => {
+		ActualizaRepro();
+		return true;
+	    });
+	}
+    }
+
+    //Actualiza el contador de reproduccion
+    private void ActualizaRepro() {
+	if (reproductor == null)
+	    return;
+	long total = reproductor.GetDuration();
+	long actual = reproductor.GetTimestamp();
+	if (total>0) {
+	    bprogreso.SetRange(0, total);
+	    bprogreso.SetValue(actual);
+	    TimeSpan tot = TimeSpan.FromMicroseconds(total);
+	    TimeSpan act = TimeSpan.FromMicroseconds(actual);
+	    ctiempo.SetText($"{act.Minutes:D2}:{act.Seconds:D2} | {tot.Minutes:D2}:{tot.Seconds:D2}");
+	}
+	if (reproductor.GetEnded()) {
+	    bplay.SetLabel("▶");
+	    bprogreso.SetValue(0);
+	}
+    }
+
     //Clase que se usa para obtener datos de la bdd
     private class Temporal {
 	public int IdRola {
