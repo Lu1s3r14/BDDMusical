@@ -109,6 +109,8 @@ public class VistaTabla {
 	bplay.Valign = Align.Center;
 	bprogreso = Scale.NewWithRange(Orientation.Horizontal, 0, 100, 1);
 	bprogreso.Valign = Align.Center;
+	bprogreso.Hexpand = true;
+	bprogreso.WidthRequest = 100;
 	bprogreso.DrawValue = false;
 	ctiempo = Label.New("00:00 | 00:00");
 	ctiempo.Valign = Align.Center;
@@ -124,6 +126,18 @@ public class VistaTabla {
 	    } else {
 		reproductor.SetPlaying(true);
 		bplay.SetLabel("❚❚");
+	    }
+	};
+	bprogreso.OnValueChanged += (s, e) => {
+	    if (cambiaProgreso || reproductor == null)
+		return;
+	    long nTiempo = (long)bprogreso.GetValue();
+	    reproductor.Seek(nTiempo);
+	    long total = reproductor.GetDuration();
+	    if (total>0) {
+		TimeSpan act = TimeSpan.FromMicroseconds(nTiempo);
+		TimeSpan tot = TimeSpan.FromMicroseconds(total);
+		ctiempo.SetText($"{act.Minutes:D2}:{act.Seconds:D2} | {tot.Minutes:D2}:{tot.Seconds:D2}");
 	    }
 	};
 	contenidoTabla.OnActivate += async (s, e) => {
@@ -565,15 +579,19 @@ public class VistaTabla {
 	long total = reproductor.GetDuration();
 	long actual = reproductor.GetTimestamp();
 	if (total>0) {
+	    cambiaProgreso = true;
 	    bprogreso.SetRange(0, total);
 	    bprogreso.SetValue(actual);
+	    cambiaProgreso = false;
 	    TimeSpan tot = TimeSpan.FromMicroseconds(total);
 	    TimeSpan act = TimeSpan.FromMicroseconds(actual);
 	    ctiempo.SetText($"{act.Minutes:D2}:{act.Seconds:D2} | {tot.Minutes:D2}:{tot.Seconds:D2}");
 	}
 	if (reproductor.GetEnded()) {
 	    bplay.SetLabel("▶");
+	    cambiaProgreso = true;
 	    bprogreso.SetValue(0);
+	    cambiaProgreso = false;
 	}
     }
 
